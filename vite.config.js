@@ -5,6 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/learn-game/',
   plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+    globals: true
+  },
   build: {
     target: 'es2020',
     minify: 'terser',

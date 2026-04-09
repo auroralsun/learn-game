@@ -3,6 +3,7 @@ import './App.css'
 import ProgressBar from './components/ProgressBar'
 import LazyImage from './components/LazyImage'
 import { getGameCompletionPercentage, getOverallProgress } from './utils/progressTracker'
+import { gameImages, startImageGenerationMonitor } from './utils/images'
 
 // 实现组件懒加载
 const EightyPointsLearning = lazy(() => import('./components/EightyPointsLearning'))
@@ -38,24 +39,28 @@ function App() {
     });
   }, [currentPage])
 
+  useEffect(() => {
+    startImageGenerationMonitor()
+  }, [])
+
   const games = [
     {
       id: 1,
       name: '八十分',
       description: '经典的纸牌游戏，需要团队合作',
-      image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20card%20game%20Eighty%20Points%20with%20playing%20cards%20on%20table%2C%20vibrant%20colors%2C%20clean%20design&image_size=square'
+      image: gameImages['eighty-points']
     },
     {
       id: 2,
       name: '麻将-川麻',
       description: '四川麻将，血战到底规则',
-      image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Sichuan%20mahjong%20game%20with%20tiles%20on%20table%2C%20traditional%20Chinese%20style%2C%20vibrant%20colors&image_size=square'
+      image: gameImages['sichuan-mahjong']
     },
     {
       id: 3,
       name: '斗地主',
       description: '三人纸牌游戏，斗智斗勇',
-      image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20card%20game%20Landlord%20with%20playing%20cards%2C%20competitive%20atmosphere%2C%20modern%20design&image_size=square'
+      image: gameImages.doudizhu
     }
   ]
 
@@ -81,7 +86,9 @@ function App() {
         <button className="back-button" onClick={handleBack}>
           ← 返回游戏选择
         </button>
-        <EightyPointsLearning />
+        <Suspense fallback={<div className="page-loading">加载中...</div>}>
+          <EightyPointsLearning />
+        </Suspense>
       </div>
     )
   }
@@ -92,7 +99,9 @@ function App() {
         <button className="back-button" onClick={handleBack}>
           ← 返回游戏选择
         </button>
-        <SichuanMahjongLearning />
+        <Suspense fallback={<div className="page-loading">加载中...</div>}>
+          <SichuanMahjongLearning />
+        </Suspense>
       </div>
     )
   }
@@ -103,7 +112,9 @@ function App() {
         <button className="back-button" onClick={handleBack}>
           ← 返回游戏选择
         </button>
-        <DoudizhuLearning />
+        <Suspense fallback={<div className="page-loading">加载中...</div>}>
+          <DoudizhuLearning />
+        </Suspense>
       </div>
     )
   }

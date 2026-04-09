@@ -262,6 +262,8 @@
   border: 2px solid #e0e0e0;
   border-radius: 5px;
   background-color: white;
+  color: #1f2937;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
@@ -273,14 +275,27 @@
   border-color: #4CAF50;
 }
 
-.option-btn.correct {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724;
+.option-btn.selected {
+  background-color: #e8f1ff;
+  border-color: #2563eb;
+  color: #0f172a;
 }
 
-.option-btn.correct:hover {
-  background-color: #c3e6cb;
+.option-btn:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.option-btn.revealed-correct {
+  background-color: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.option-btn.revealed-incorrect {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
 }
 
 /* 拖拽容器 */
@@ -290,27 +305,84 @@
   gap: 10px;
   margin: 20px 0;
   flex-wrap: wrap;
+  align-items: stretch;
 }
 
 .draggable-card {
-  padding: 15px;
-  background-color: #f0f0f0;
-  border: 2px solid #ccc;
-  border-radius: 5px;
+  padding: 14px 16px;
+  background-color: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
   cursor: grab;
   transition: all 0.3s ease;
-  min-width: 80px;
-  text-align: center;
-  font-weight: bold;
+  min-width: 150px;
+  text-align: left;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .draggable-card:hover {
-  background-color: #e0e0e0;
+  background-color: #eef6ff;
+  border-color: #60a5fa;
   transform: translateY(-2px);
 }
 
 .draggable-card:active {
   cursor: grabbing;
+}
+
+.draggable-card.revealed-order {
+  background-color: #dbeafe;
+  border-color: #2563eb;
+}
+
+.order-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: #2563eb;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+.order-label {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.ordering-result {
+  color: #1d4ed8;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.practice-feedback {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  text-align: left;
+}
+
+.practice-feedback h3 {
+  margin: 0 0 8px;
+  color: #1d4ed8;
+  font-size: 1rem;
+}
+
+.practice-feedback p {
+  margin: 0;
+  color: #1e3a8a;
+  line-height: 1.6;
 }
 
 /* 实践控制按钮 */

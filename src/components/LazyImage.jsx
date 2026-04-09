@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
+import { useGeneratedImageSource } from '../utils/images'
 
 const LazyImage = ({ src, alt, className = '', placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjBmMGYwIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjY2NjIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiPvCfkrs8L3RleHQ+Cjwvc3ZnPgo=' }) => {
+  const resolvedSrc = useGeneratedImageSource(src)
   const [imageSrc, setImageSrc] = useState(placeholder)
   const [isLoaded, setIsLoaded] = useState(false)
   const imgRef = useRef(null)
 
   useEffect(() => {
+    setImageSrc(placeholder)
+    setIsLoaded(false)
+
     let observer
     const imgElement = imgRef.current
 
@@ -15,9 +20,9 @@ const LazyImage = ({ src, alt, className = '', placeholder = 'data:image/svg+xml
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               const img = new Image()
-              img.src = src
+              img.src = resolvedSrc
               img.onload = () => {
-                setImageSrc(src)
+                setImageSrc(resolvedSrc)
                 setIsLoaded(true)
               }
               observer.unobserve(imgElement)
@@ -34,7 +39,7 @@ const LazyImage = ({ src, alt, className = '', placeholder = 'data:image/svg+xml
         observer.observe(imgElement)
       }
     } else {
-      setImageSrc(src)
+      setImageSrc(resolvedSrc)
       setIsLoaded(true)
     }
 
@@ -43,7 +48,7 @@ const LazyImage = ({ src, alt, className = '', placeholder = 'data:image/svg+xml
         observer.unobserve(imgElement)
       }
     }
-  }, [src])
+  }, [placeholder, resolvedSrc])
 
   return (
     <img

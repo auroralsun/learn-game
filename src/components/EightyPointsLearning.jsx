@@ -1,7 +1,180 @@
 import React, { useState, useEffect } from 'react';
 import './EightyPointsLearning.css';
 import LazyImage from './LazyImage';
+import PracticeOrdering from './PracticeOrdering';
+import PracticeQuiz from './PracticeQuiz';
 import { markSectionComplete, markPracticeComplete } from '../utils/progressTracker';
+import { practiceImages } from '../utils/images';
+
+const practiceScenes = {
+  basicRules: [
+    {
+      title: '游戏目标实践',
+      description: '八十分常见目标是抓分方争取拿到80分或更多，守分方则尽量把对手压到80分以下。',
+      image: practiceImages.eightyPointsGoal,
+      prompt: '更符合八十分胜负目标的是：',
+      options: [
+        { label: '抓分方争取抓到80分或以上，守分方尽量压分', correct: true },
+        { label: '谁先把手牌出完谁就立即单独获胜' },
+        { label: '只比较最后谁手里剩牌更少' }
+      ]
+    },
+    {
+      title: '牌的组成实践',
+      description: '八十分通常使用两副扑克牌，共108张。',
+      image: practiceImages.eightyPointsDeck,
+      prompt: '两副标准扑克牌一共是多少张？',
+      options: [
+        { label: '54张' },
+        { label: '108张', correct: true },
+        { label: '112张' }
+      ]
+    },
+    {
+      title: '牌序排序实践',
+      description: '请拖动卡片，把这些牌按从大到小的顺序排好。',
+      image: practiceImages.eightyPointsRanking,
+      prompt: '请按从大到小排列这些牌：',
+      orderingItems: ['2', '小王', 'A', '大王'],
+      correctOrder: ['大王', '小王', 'A', '2']
+    }
+  ],
+  cardDistribution: [
+    {
+      title: '发牌实践',
+      description: '108张牌由4人参与且留8张底牌时，每位玩家应拿到25张牌。',
+      image: practiceImages.eightyPointsDeal,
+      prompt: '八十分4人局留8张底牌时，每位玩家应拿多少张牌？',
+      options: [
+        { label: '24张' },
+        { label: '25张', correct: true },
+        { label: '26张' }
+      ]
+    },
+    {
+      title: '底牌处理实践',
+      description: '庄家拿到底牌后，需要整理手牌，再扣回等量底牌。',
+      image: practiceImages.eightyPointsBid,
+      prompt: '庄家拿到8张底牌后，通常要做什么？',
+      options: [
+        { label: '把8张底牌全部留在手里，不再回扣' },
+        { label: '从手牌中再扣回8张，重新形成底牌', correct: true },
+        { label: '立刻把底牌全部公开给所有玩家' }
+      ]
+    }
+  ],
+  gameplay: [
+    {
+      title: '跟牌规则实践',
+      description: '首家出某花色时，如果你手里还有该花色，通常必须优先跟该花色。',
+      image: practiceImages.eightyPointsPlay,
+      prompt: '当首家出红桃A，而你手里还有红桃时，应该：',
+      options: [
+        { label: '优先跟出红桃牌', correct: true },
+        { label: '直接任意出主牌即可' },
+        { label: '随便垫别的花色也可以' }
+      ]
+    },
+    {
+      title: '计分规则实践',
+      description: '八十分常见分牌是5、10、K，其中5算5分，10和K各算10分。',
+      image: practiceImages.eightyPointsScore,
+      prompt: '请计算这几张分牌总分：5、10、K、5',
+      options: [
+        { label: '25分' },
+        { label: '30分', correct: true },
+        { label: '35分' }
+      ]
+    }
+  ],
+  basicStrategy: [
+    {
+      title: '抢主判断实践',
+      description: '主牌质量高、分牌控制力强时，通常更适合积极争取主导权。',
+      image: practiceImages.eightyPointsStrategy,
+      prompt: '你手里有双王、多张主牌和较强分牌控制力，这时更合理的倾向是：',
+      options: [
+        { label: '积极争取主导权', correct: true },
+        { label: '无论如何都不抢主' },
+        { label: '先把所有分牌随手垫掉' }
+      ]
+    },
+    {
+      title: '团队合作实践',
+      description: '配合时既要帮队友保分，也要避免把关键控制牌过早浪费。',
+      image: practiceImages.eightyPointsTeamwork,
+      prompt: '队友正在控局并准备收分，你更应该：',
+      options: [
+        { label: '补上能稳住牌权的牌，帮助队友收分', correct: true },
+        { label: '立刻把最大牌都抢着打掉' },
+        { label: '故意改打最乱的花色' }
+      ]
+    }
+  ],
+  advancedStrategy: [
+    {
+      title: '记分牌场景练习',
+      description: '本轮已见两张10和一张K，若对手仍在控局，就要优先考虑剩余分牌还会不会继续被他家拿走。',
+      image: practiceImages.eightyPointsScore,
+      prompt: '已知大部分分牌尚未落地，而你方当前领先牌权，此时更稳的思路是：',
+      options: [
+        { label: '继续控牌，把分牌尽量收进本方墩里', correct: true },
+        { label: '马上把所有主牌一次性打光' },
+        { label: '主动把牌权送回对手试探' }
+      ]
+    },
+    {
+      title: '控节奏场景练习',
+      description: '你判断队友黑桃门很长，继续让黑桃门走顺，往往比随机切花更容易连续收分。',
+      image: practiceImages.eightyPointsPlay,
+      prompt: '如果你判断队友在黑桃门很长，你更适合：',
+      options: [
+        { label: '尽量把牌权导回黑桃，让队友持续兑现', correct: true },
+        { label: '立刻改打自己最弱的花色' },
+        { label: '完全无视队友牌型，随机出牌' }
+      ]
+    }
+  ],
+  defense: [
+    {
+      title: '守分反制练习',
+      description: '对手准备收一墩大分时，守方应优先考虑是否用关键主牌拆掉这一墩。',
+      image: practiceImages.eightyPointsPlay,
+      prompt: '对手这一墩可能包含两张10和一张K，你手里只剩一个关键主牌，应该：',
+      options: [
+        { label: '优先考虑断掉这一墩，避免大量失分', correct: true },
+        { label: '先省着不用，等分都被拿走再说' },
+        { label: '垫最小分牌给对手' }
+      ]
+    }
+  ],
+  teamwork: [
+    {
+      title: '队友信号练习',
+      description: '队友在安全时机先垫小牌，常常是在告诉你该门暂时不需要他接管。',
+      image: practiceImages.eightyPointsTeamwork,
+      prompt: '队友在你已领先的牌墩上垫出很小的同花色牌，更可能意味着：',
+      options: [
+        { label: '他不想浪费大牌，你可以继续主导本墩', correct: true },
+        { label: '他已经没有任何同花色牌' },
+        { label: '他希望你立刻把大王打掉' }
+      ]
+    }
+  ],
+  advancedTechniques: [
+    {
+      title: '算牌决策练习',
+      description: '若你已经确认两张王都出过，后续主牌大小关系就更容易判断。',
+      image: practiceImages.eightyPointsStrategy,
+      prompt: '两王都已出现后，你的算牌重点更应该转向：',
+      options: [
+        { label: '剩余主级牌和关键分牌还在哪一方', correct: true },
+        { label: '假装自己没看过已出牌' },
+        { label: '只盯着自己上一手出的牌' }
+      ]
+    }
+  ]
+};
 
 const EightyPointsLearning = () => {
   const [activeTab, setActiveTab] = useState('intro');
@@ -9,40 +182,82 @@ const EightyPointsLearning = () => {
   const [practiceStep, setPracticeStep] = useState(0);
   const [showPractice, setShowPractice] = useState(false);
   const [selectedPractice, setSelectedPractice] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [revealAnswer, setRevealAnswer] = useState(false);
+  const [orderingItems, setOrderingItems] = useState([]);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  const resetInteractionState = (scene) => {
+    setSelectedOption(null);
+    setRevealAnswer(false);
+    setOrderingItems(scene?.orderingItems ? [...scene.orderingItems] : []);
+    setHasInteracted(false);
+  };
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
-    // 标记学习部分为已完成
     markSectionComplete(1, section);
   };
 
   const startPractice = (practiceType) => {
+    const firstScene = (practiceScenes[practiceType] || [])[0];
     setSelectedPractice(practiceType);
     setPracticeStep(0);
     setShowPractice(true);
-    // 标记练习为已完成
+    resetInteractionState(firstScene);
     markPracticeComplete(1, practiceType);
   };
 
   const nextPracticeStep = () => {
-    setPracticeStep(prev => prev + 1);
+    const scenes = practiceScenes[selectedPractice] || [];
+    const currentScene = scenes[practiceStep];
+
+    if (currentScene?.options && !revealAnswer) {
+      if (selectedOption === null) {
+        return;
+      }
+
+      setRevealAnswer(true);
+      return;
+    }
+
+    if (currentScene?.orderingItems && !revealAnswer) {
+      if (!hasInteracted) {
+        return;
+      }
+
+      setOrderingItems([...currentScene.correctOrder]);
+      setRevealAnswer(true);
+      return;
+    }
+
+    if (practiceStep === scenes.length - 1) {
+      closePractice();
+      return;
+    }
+
+    const nextStep = practiceStep + 1;
+    setPracticeStep(nextStep);
+    resetInteractionState(scenes[nextStep]);
   };
 
   const prevPracticeStep = () => {
-    setPracticeStep(prev => prev - 1);
+    const prevStep = practiceStep - 1;
+    setPracticeStep(prevStep);
+    resetInteractionState((practiceScenes[selectedPractice] || [])[prevStep]);
   };
 
   const closePractice = () => {
     setShowPractice(false);
     setSelectedPractice(null);
     setPracticeStep(0);
+    resetInteractionState(null);
   };
 
   useEffect(() => {
-    // 添加动画效果
     const cards = document.querySelectorAll('.practice-card');
     cards.forEach((card, index) => {
       setTimeout(() => {
@@ -51,155 +266,53 @@ const EightyPointsLearning = () => {
     });
   }, [practiceStep, selectedPractice]);
 
+  const renderPracticeInteractive = (scene) => {
+    const correctIndex = scene.options?.findIndex((option) => option.correct) ?? -1;
+    const isCorrect = selectedOption === correctIndex;
+    const feedbackTitle = revealAnswer
+      ? isCorrect
+        ? '回答正确'
+        : '这题需要修正'
+      : '';
+    const feedbackBody = revealAnswer
+      ? `知识点：${scene.knowledgePoint || scene.description}`
+      : '';
+
+    if (scene.options) {
+      return (
+        <PracticeQuiz
+          prompt={scene.prompt}
+          options={scene.options}
+          selectedOption={selectedOption}
+          revealAnswer={revealAnswer}
+          onSelect={setSelectedOption}
+          feedbackTitle={feedbackTitle}
+          feedbackBody={feedbackBody}
+        />
+      );
+    }
+
+    if (scene.orderingItems) {
+      return (
+        <PracticeOrdering
+          prompt={scene.prompt}
+          items={orderingItems}
+          revealAnswer={revealAnswer}
+          onReorder={(items) => {
+            setOrderingItems(items);
+            setHasInteracted(true);
+          }}
+          feedbackTitle="排序结果已确认"
+          feedbackBody={`知识点：${scene.knowledgePoint || scene.description}`}
+        />
+      );
+    }
+
+    return scene.interactive;
+  };
+
   const renderPracticeScene = () => {
     if (!showPractice) return null;
-
-    const practiceScenes = {
-      basicRules: [
-        {
-          title: '游戏目标实践',
-          description: '八十分是团队游戏，需要与队友配合赢得分数',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20card%20game%20Eighty%20Points%20team%20play%20with%20players%20cooperating%2C%20vibrant%20colors%2C%20clean%20design&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请选择你认为正确的游戏目标：</p>
-              <div className="option-buttons">
-                <button className="option-btn correct">先达到80分的团队获胜</button>
-                <button className="option-btn">先出完牌的人获胜</button>
-                <button className="option-btn">获得最多单张牌的人获胜</button>
-              </div>
-            </div>
-          )
-        },
-        {
-          title: '牌的组成实践',
-          description: '八十分使用两副标准扑克牌，共108张',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Two%20decks%20of%20playing%20cards%20for%20Eighty%20Points%20game%2C%20108%20cards%20including%20jokers%2C%20neatly%20arranged&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请计算八十分游戏使用的牌数：</p>
-              <div className="option-buttons">
-                <button className="option-btn">54张</button>
-                <button className="option-btn correct">108张</button>
-                <button className="option-btn">162张</button>
-              </div>
-            </div>
-          )
-        },
-        {
-          title: '牌的大小实践',
-          description: '了解八十分中牌的大小顺序',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Playing%20cards%20ranking%20order%20for%20Eighty%20Points%20game%2C%20with%20jokers%20on%20top%2C%20visual%20hierarchy&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请按从大到小的顺序排列以下牌：</p>
-              <div className="drag-drop-container">
-                <div className="draggable-card" draggable="true">大王</div>
-                <div className="draggable-card" draggable="true">小王</div>
-                <div className="draggable-card" draggable="true">A</div>
-                <div className="draggable-card" draggable="true">2</div>
-              </div>
-            </div>
-          )
-        }
-      ],
-      cardDistribution: [
-        {
-          title: '发牌实践',
-          description: '每位玩家发12张牌，剩余8张作为底牌',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Dealing%20cards%20in%20Eighty%20Points%20game%2C%204%20players%20receiving%2012%20cards%20each%2C%208%20cards%20as%20bottom%20cards&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请选择正确的发牌数量：</p>
-              <div className="option-buttons">
-                <button className="option-btn">每位玩家10张，底牌10张</button>
-                <button className="option-btn correct">每位玩家12张，底牌8张</button>
-                <button className="option-btn">每位玩家13张，底牌6张</button>
-              </div>
-            </div>
-          )
-        },
-        {
-          title: '叫牌实践',
-          description: '从庄家开始顺时针叫牌，选择主牌花色和级别',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Players%20bidding%20in%20Eighty%20Points%20game%2C%20selecting%20trump%20suit%20and%20rank%2C%20competitive%20atmosphere&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请选择叫牌的正确顺序：</p>
-              <div className="option-buttons">
-                <button className="option-btn correct">从庄家开始顺时针</button>
-                <button className="option-btn">从庄家开始逆时针</button>
-                <button className="option-btn">随机顺序</button>
-              </div>
-            </div>
-          )
-        }
-      ],
-      gameplay: [
-        {
-          title: '出牌规则实践',
-          description: '庄家先出牌，玩家必须出同花色的牌',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Players%20playing%20Eighty%20Points%20game%2C%20following%20suit%20rules%2C%20clockwise%20play%20order&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>当对手出红桃A时，你应该：</p>
-              <div className="option-buttons">
-                <button className="option-btn correct">出红桃牌</button>
-                <button className="option-btn">出任意花色</button>
-                <button className="option-btn">不出牌</button>
-              </div>
-            </div>
-          )
-        },
-        {
-          title: '计分规则实践',
-          description: 'J、Q、K、10各算10分，5算5分',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Scoring%20points%20in%20Eighty%20Points%20game%2C%20showing%20point%20cards%20JQK10%20and%205%2C%20visual%20representation&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>请计算以下牌的总分数：J、Q、5、10</p>
-              <div className="option-buttons">
-                <button className="option-btn">25分</button>
-                <button className="option-btn correct">35分</button>
-                <button className="option-btn">40分</button>
-              </div>
-            </div>
-          )
-        }
-      ],
-      basicStrategy: [
-        {
-          title: '叫牌策略实践',
-          description: '根据牌力和主牌数量决定是否叫牌',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Player%20considering%20whether%20to%20bid%20in%20Eighty%20Points%20game%2C%20analyzing%20hand%20strength%2C%20thoughtful%20expression&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>当你有7张主牌和3张A时，你应该：</p>
-              <div className="option-buttons">
-                <button className="option-btn correct">叫牌</button>
-                <button className="option-btn">不叫牌</button>
-                <button className="option-btn">看情况</button>
-              </div>
-            </div>
-          )
-        },
-        {
-          title: '团队合作实践',
-          description: '与队友配合，通过出牌传递信息',
-          image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Team%20cooperation%20in%20Eighty%20Points%20game%2C%20players%20communicating%20through%20card%20play%2C%20strategic%20partnership&image_size=landscape_16_9',
-          interactive: (
-            <div className="interactive-element">
-              <p>当队友出小牌时，这通常表示：</p>
-              <div className="option-buttons">
-                <button className="option-btn correct">他在该花色有大牌</button>
-                <button className="option-btn">他没有该花色的牌</button>
-                <button className="option-btn">他随便出的</button>
-              </div>
-            </div>
-          )
-        }
-      ]
-    };
 
     const scenes = practiceScenes[selectedPractice] || [];
     const currentScene = scenes[practiceStep];
@@ -215,10 +328,10 @@ const EightyPointsLearning = () => {
             <LazyImage src={currentScene.image} alt={currentScene.title} />
           </div>
           <p className="practice-description">{currentScene.description}</p>
-          {currentScene.interactive}
+          {renderPracticeInteractive(currentScene)}
           <div className="practice-controls">
-            <button 
-              className="control-btn" 
+            <button
+              className="control-btn"
               onClick={prevPracticeStep}
               disabled={practiceStep === 0}
             >
@@ -227,10 +340,13 @@ const EightyPointsLearning = () => {
             <span className="step-indicator">
               {practiceStep + 1} / {scenes.length}
             </span>
-            <button 
-              className="control-btn" 
+            <button
+              className="control-btn"
               onClick={nextPracticeStep}
-              disabled={practiceStep === scenes.length - 1}
+              disabled={
+                (currentScene.options && selectedOption === null && !revealAnswer) ||
+                (currentScene.orderingItems && !hasInteracted && !revealAnswer)
+              }
             >
               下一步
             </button>
@@ -248,13 +364,13 @@ const EightyPointsLearning = () => {
       </div>
 
       <div className="learning-tabs">
-        <button 
+        <button
           className={`tab-button ${activeTab === 'intro' ? 'active' : ''}`}
           onClick={() => setActiveTab('intro')}
         >
           入门阶段
         </button>
-        <button 
+        <button
           className={`tab-button ${activeTab === 'advanced' ? 'active' : ''}`}
           onClick={() => setActiveTab('advanced')}
         >
@@ -266,10 +382,7 @@ const EightyPointsLearning = () => {
         {activeTab === 'intro' && (
           <div className="intro-section">
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('basicRules')}
-              >
+              <div className="section-header" onClick={() => toggleSection('basicRules')}>
                 <h2>基本规则</h2>
                 <span className={`toggle-icon ${expandedSections.basicRules ? 'expanded' : ''}`}>
                   {expandedSections.basicRules ? '▼' : '▶'}
@@ -277,24 +390,17 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.basicRules && (
                 <div className="section-content">
-                  <h3>游戏目标</h3>
-                  <p>八十分是一种基于扑克牌的团队游戏，目标是通过合作赢得尽可能多的分数，先达到指定分数（通常是80分）的团队获胜。</p>
-                  
-                  <h3>牌的组成</h3>
-                  <p>使用两副标准扑克牌，共108张牌，包括大小王。</p>
-                  
-                  <h3>玩家人数</h3>
-                  <p>4人游戏，分为两组，面对面的两位玩家为一组。</p>
-                  
-                  <h3>牌的大小</h3>
-                  <p>主牌：大小王 > 主牌级别的牌 > 其他花色的主牌 > 副牌</p>
-                  <p>副牌：A > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2</p>
-                  
+                  <h3>规则声明</h3>
+                  <p>八十分是一种四人对家的抓分游戏。常见玩法里，抓分方要尽量把分牌抓到80分或以上，守分方则努力把对手压到80分以下。</p>
+
+                  <h3>场景示例</h3>
+                  <p>例如你和对家已经收回两墩分牌，而对手还没拿到关键10和K，这时你们的核心任务就不是“快点出完牌”，而是继续把分墩控制在本方。</p>
+
+                  <h3>实践目标</h3>
+                  <p>先理解两副牌共108张、4人对家、主牌与副牌大小关系，再通过练习判断哪些选择真正服务于“抓分/守分”。</p>
+
                   <div className="practice-section">
-                    <button 
-                      className="practice-button"
-                      onClick={() => startPractice('basicRules')}
-                    >
+                    <button className="practice-button" onClick={() => startPractice('basicRules')}>
                       开始实践练习
                     </button>
                   </div>
@@ -303,31 +409,25 @@ const EightyPointsLearning = () => {
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('cardDistribution')}
-              >
-                <h2>发牌与叫牌</h2>
+              <div className="section-header" onClick={() => toggleSection('cardDistribution')}>
+                <h2>发牌与定主</h2>
                 <span className={`toggle-icon ${expandedSections.cardDistribution ? 'expanded' : ''}`}>
                   {expandedSections.cardDistribution ? '▼' : '▶'}
                 </span>
               </div>
               {expandedSections.cardDistribution && (
                 <div className="section-content">
-                  <h3>发牌</h3>
-                  <p>每轮发牌时，每位玩家发12张牌，剩余8张牌作为底牌。</p>
-                  
-                  <h3>叫牌</h3>
-                  <p>从庄家开始，按顺时针方向依次叫牌，玩家可以选择叫主牌花色和级别，或者不叫。叫牌的级别从2开始，最高到A。</p>
-                  
-                  <h3>底牌</h3>
-                  <p>叫牌结束后，获胜的玩家（庄家）可以查看底牌，并将其与自己的牌组合，然后选择8张牌作为新的底牌。</p>
-                  
+                  <h3>规则声明</h3>
+                  <p>两副牌共108张，4人参与且留8张底牌时，每位玩家通常拿25张牌；常见玩法会先定主，再由庄家处理底牌。</p>
+
+                  <h3>场景示例</h3>
+                  <p>例如庄家拿到底牌后发现主牌质量明显提升，他需要重新整理整手牌，再扣回8张，不能把底牌无限留在自己手里。</p>
+
+                  <h3>实践目标</h3>
+                  <p>通过练习分清“每人拿多少张”“庄家何时形成最终手牌”“底牌如何回扣”这三个最容易混淆的点。</p>
+
                   <div className="practice-section">
-                    <button 
-                      className="practice-button"
-                      onClick={() => startPractice('cardDistribution')}
-                    >
+                    <button className="practice-button" onClick={() => startPractice('cardDistribution')}>
                       开始实践练习
                     </button>
                   </div>
@@ -336,10 +436,7 @@ const EightyPointsLearning = () => {
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('gameplay')}
-              >
+              <div className="section-header" onClick={() => toggleSection('gameplay')}>
                 <h2>游戏流程</h2>
                 <span className={`toggle-icon ${expandedSections.gameplay ? 'expanded' : ''}`}>
                   {expandedSections.gameplay ? '▼' : '▶'}
@@ -347,20 +444,17 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.gameplay && (
                 <div className="section-content">
-                  <h3>出牌规则</h3>
-                  <p>庄家先出牌，其他玩家按顺时针方向依次出牌。玩家必须出与首牌同花色的牌，如果没有该花色的牌，可以出其他花色的牌或主牌。</p>
-                  
-                  <h3>赢牌规则</h3>
-                  <p>每轮出牌中，最大的牌获胜，获胜者获得本轮的牌，并在下一轮先出牌。</p>
-                  
-                  <h3>计分规则</h3>
-                  <p>J、Q、K、10各算10分，5算5分，其他牌不算分。获胜的团队将获得本轮中所有的分数。</p>
-                  
+                  <h3>规则声明</h3>
+                  <p>首家出某花色时，若你手里仍有该花色，一般必须先跟该花色；本墩里牌面最大的玩家赢墩并继续先手。</p>
+
+                  <h3>场景示例</h3>
+                  <p>例如首家出红桃A，而你手里还有红桃和主牌，这时不能直接用主牌抢，必须先跟红桃；只有缺门时才考虑垫牌或用主牌翻回牌权。</p>
+
+                  <h3>实践目标</h3>
+                  <p>通过练习同时掌握跟牌、赢墩和分牌计算，理解为什么真正关键的是“谁把分墩拿走”，而不是单纯“谁牌更大”。</p>
+
                   <div className="practice-section">
-                    <button 
-                      className="practice-button"
-                      onClick={() => startPractice('gameplay')}
-                    >
+                    <button className="practice-button" onClick={() => startPractice('gameplay')}>
                       开始实践练习
                     </button>
                   </div>
@@ -369,10 +463,7 @@ const EightyPointsLearning = () => {
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('basicStrategy')}
-              >
+              <div className="section-header" onClick={() => toggleSection('basicStrategy')}>
                 <h2>基本策略</h2>
                 <span className={`toggle-icon ${expandedSections.basicStrategy ? 'expanded' : ''}`}>
                   {expandedSections.basicStrategy ? '▼' : '▶'}
@@ -380,20 +471,17 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.basicStrategy && (
                 <div className="section-content">
-                  <h3>叫牌策略</h3>
-                  <p>根据自己手中的牌力和主牌数量决定是否叫牌，一般来说，有较多主牌和大牌时适合叫牌。</p>
-                  
-                  <h3>出牌策略</h3>
-                  <p>尽量先出小牌，保留大牌在关键时刻使用；注意观察其他玩家的出牌，了解他们的牌型。</p>
-                  
-                  <h3>团队合作</h3>
-                  <p>与队友配合，通过出牌传递信息，例如出一张小牌表示自己在该花色有大牌。</p>
-                  
+                  <h3>规则声明</h3>
+                  <p>基础策略的核心不是“牌大就抢”，而是判断谁更适合控局、何时该保分、何时该把牌权送回队友。</p>
+
+                  <h3>场景示例</h3>
+                  <p>例如你手里主牌强但分牌保护一般，就要先想清楚是否真该抢主；如果队友长套更好，很多时候把牌权导回给他更划算。</p>
+
+                  <h3>实践目标</h3>
+                  <p>通过练习学会在抢主、出牌顺序和团队配合之间做选择，而不是只按“先出小牌”这类单一口诀操作。</p>
+
                   <div className="practice-section">
-                    <button 
-                      className="practice-button"
-                      onClick={() => startPractice('basicStrategy')}
-                    >
+                    <button className="practice-button" onClick={() => startPractice('basicStrategy')}>
                       开始实践练习
                     </button>
                   </div>
@@ -406,10 +494,7 @@ const EightyPointsLearning = () => {
         {activeTab === 'advanced' && (
           <div className="advanced-section">
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('advancedStrategy')}
-              >
+              <div className="section-header" onClick={() => toggleSection('advancedStrategy')}>
                 <h2>高级策略</h2>
                 <span className={`toggle-icon ${expandedSections.advancedStrategy ? 'expanded' : ''}`}>
                   {expandedSections.advancedStrategy ? '▼' : '▶'}
@@ -417,23 +502,26 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.advancedStrategy && (
                 <div className="section-content">
-                  <h3>记牌技巧</h3>
-                  <p>记住已经出过的牌，特别是大牌和分数牌，以便判断剩余牌的分布。</p>
+                  <h3>技巧声明</h3>
+                  <p>示例场景：你已看见两张10和一张K被对手收走，这时就要判断剩余分牌是否还会继续落入同一侧，而不是只看自己当前有没有大牌。</p>
                   
-                  <h3>信号传递</h3>
-                  <p>通过特定的出牌顺序和牌型向队友传递信息，例如出A表示有K，出小牌表示无大牌等。</p>
+                  <h3>技巧示例</h3>
+                  <p>示例场景：队友领先一墩时，你垫小同花往往是在告诉他“这门我不需要接”，让队友继续按原节奏控局。</p>
                   
-                  <h3>控制牌局</h3>
-                  <p>通过出牌控制牌局的节奏，迫使对手出不利于他们的牌。</p>
+                  <h3>实践目标</h3>
+                  <p>示例场景：你判断队友黑桃门很长，就应尽量把牌权导回黑桃，而不是随意切去自己最弱的花色。</p>
+
+                  <div className="practice-section">
+                    <button className="practice-button" onClick={() => startPractice('advancedStrategy')}>
+                      开始进阶场景练习
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('defense')}
-              >
+              <div className="section-header" onClick={() => toggleSection('defense')}>
                 <h2>防守技巧</h2>
                 <span className={`toggle-icon ${expandedSections.defense ? 'expanded' : ''}`}>
                   {expandedSections.defense ? '▼' : '▶'}
@@ -441,23 +529,26 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.defense && (
                 <div className="section-content">
-                  <h3>阻挡对手</h3>
-                  <p>当对手要得分时，尽量用大牌阻挡，不让他们轻易获得分数。</p>
+                  <h3>技巧声明</h3>
+                  <p>示例场景：对手准备收走一墩20分以上，而你手里只剩一张关键主牌，这时优先断掉这墩通常比“留着以后看”更值。</p>
                   
-                  <h3>分散对手注意力</h3>
-                  <p>通过出不同花色的牌，分散对手的注意力，打乱他们的计划。</p>
+                  <h3>技巧示例</h3>
+                  <p>如果能把对手从舒服的长套门上逼开，往往就能让他提前交出主牌或关键控制牌。</p>
                   
-                  <h3>保存实力</h3>
-                  <p>在不必要的时候不要浪费大牌，保存实力用于关键时刻。</p>
+                  <h3>实践目标</h3>
+                  <p>真正要省的是能拦住对手关键收分的牌，而不是所有大牌都盲目囤着不用。</p>
+
+                  <div className="practice-section">
+                    <button className="practice-button" onClick={() => startPractice('defense')}>
+                      开始进阶场景练习
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('teamwork')}
-              >
+              <div className="section-header" onClick={() => toggleSection('teamwork')}>
                 <h2>团队配合</h2>
                 <span className={`toggle-icon ${expandedSections.teamwork ? 'expanded' : ''}`}>
                   {expandedSections.teamwork ? '▼' : '▶'}
@@ -465,23 +556,26 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.teamwork && (
                 <div className="section-content">
-                  <h3>默契配合</h3>
-                  <p>与队友建立默契，通过出牌传递准确的信息，例如花色选择、牌型大小等。</p>
+                  <h3>技巧声明</h3>
+                  <p>示例场景：队友已经控住主牌，你就应优先考虑如何保分、导门，而不是为了“展示有牌”去抢回本不该抢的牌权。</p>
                   
-                  <h3>分工合作</h3>
-                  <p>根据队友的牌力和风格，合理分工，例如一人负责进攻，一人负责防守。</p>
+                  <h3>技巧示例</h3>
+                  <p>一方负责持续控局，另一方负责保住关键分门，这种分工常比两个人都抢着打大牌更有效。</p>
                   
-                  <h3>调整策略</h3>
-                  <p>根据牌局的发展和对手的表现，及时调整团队策略。</p>
+                  <h3>实践目标</h3>
+                  <p>一旦发现对手某门已空，团队就该马上换思路，避免再把分牌继续送进可被杀掉的门里。</p>
+
+                  <div className="practice-section">
+                    <button className="practice-button" onClick={() => startPractice('teamwork')}>
+                      开始进阶场景练习
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="section-card">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('advancedTechniques')}
-              >
+              <div className="section-header" onClick={() => toggleSection('advancedTechniques')}>
                 <h2>高级技巧</h2>
                 <span className={`toggle-icon ${expandedSections.advancedTechniques ? 'expanded' : ''}`}>
                   {expandedSections.advancedTechniques ? '▼' : '▶'}
@@ -489,14 +583,20 @@ const EightyPointsLearning = () => {
               </div>
               {expandedSections.advancedTechniques && (
                 <div className="section-content">
-                  <h3>跳级叫牌</h3>
-                  <p>当手中牌力很强时，可以跳级叫牌，直接叫到较高的级别，给对手压力。</p>
+                  <h3>技巧声明</h3>
+                  <p>高级局里最实用的是算剩余主级牌、分牌和长套归属，知道谁还保留着最后的控制力。</p>
                   
-                  <h3>诈牌技巧</h3>
-                  <p>通过出牌方式误导对手，让他们误以为你有或没有某些牌。</p>
+                  <h3>技巧示例</h3>
+                  <p>示例场景：你暂时不暴露全部控制牌，可以让对手误判你某门已空，从而在关键墩突然翻回牌权。</p>
                   
-                  <h3>算牌能力</h3>
-                  <p>通过计算剩余牌的数量和分布，做出最优的决策。</p>
+                  <h3>实践目标</h3>
+                  <p>每次抢墩前都要想清楚：这张大牌打出去后，下一墩是不是还能继续控住，以及分牌是否会因此外流。</p>
+
+                  <div className="practice-section">
+                    <button className="practice-button" onClick={() => startPractice('advancedTechniques')}>
+                      开始进阶场景练习
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
